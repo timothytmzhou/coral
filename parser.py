@@ -39,22 +39,18 @@ class Parser:
         """
         for i, token in enumerate(statement):
             if token.value == "=":
-                expr = statement[i + 1:]
-                expr = tuple(self.parse_primitives(expr))
                 return Assignment(
-                    statement[i - 1].value,
-                    self.parse_expr(expr).eval()
+                    statement [i - 1].value,
+                    self.parse_expr(statement[i + 1:])
+                )
+            elif token.value == "print":
+                return Output(
+                    self.parse_expr(statement[i + 1:])
                 )
 
     def parse_expr(self, expr):
-        """
-        :param expr: tuple of Token objects to be parsed into Expression nodes
-        :return: appropriate Expression node
-        """
-        expr = tuple(self.combine_parenthesis(expr))
-        expr = tuple(self.combine_binary_operators(expr, "*", "/"))
-        expr = next(self.combine_binary_operators(expr, "+", "-"))
-        return expr
+        expr = tuple(self.parse_primitives(expr))
+        return self.combine(expr)
 
     def parse_primitives(self, expr):
         """
@@ -67,6 +63,16 @@ class Parser:
                 yield Node(Node.cast(token.value))
             else:
                 yield token
+
+    def combine(self, expr):
+        """
+        :param expr: tuple of Token objects to be parsed into Expression nodes
+        :return: appropriate Expression node
+        """
+        expr = tuple(self.combine_parenthesis(expr))
+        expr = tuple(self.combine_binary_operators(expr, "*", "/"))
+        expr = next(self.combine_binary_operators(expr, "+", "-"))
+        return expr
 
     def combine_parenthesis(self, expr):
         """
@@ -88,7 +94,7 @@ class Parser:
                         paren_stack.append(expr[i])
                     elif expr[i].value == ")":
                         paren_stack.pop()
-                yield self.parse_expr(expr[start : i])
+                yield self.combine(expr[start: i])
             else:
                 yield token
             i += 1

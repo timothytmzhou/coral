@@ -31,12 +31,20 @@ class Expression(AST_Node):
 
 # TODO: separate namespaces and scoping
 class Assignment(Statement):
-    def __init__(self, name, value):
+    def __init__(self, name, expression):
         self.name = name
-        self.value = value
+        self.expression = expression
 
     def exec(self):
-        main.set_var(self.name, self.value)
+        main.set_var(self.name, self.expression.eval())
+
+
+class Output(Statement):
+    def __init__(self, expression):
+        self.expression = expression
+
+    def exec(self):
+        print(self.expression.eval())
 
 
 class Primitive(Expression):

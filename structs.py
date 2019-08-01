@@ -37,7 +37,7 @@ def add_tokens(token_type, tokens):
 
 add_tokens(TokenType.UNARY, ("!", "++", "--"))
 add_tokens(TokenType.BINARY, ("=", "+", "-", "*", "/", "%", "&&", "||", "<", ">"))
-add_tokens(TokenType.KEYWORD, ("if", "elif", "else", "while", "for", "do", "func", "return"))
+add_tokens(TokenType.KEYWORD, ("if", "elif", "else", "while", "for", "do", "print"))
 add_tokens(TokenType.SYMBOL, (";",))
 add_tokens(TokenType.GROUPING, ("(", ")", "{", "}"))
 add_tokens(TokenType.SEPARATOR, (" ", ","))
