@@ -111,9 +111,7 @@ class Lexer:
                     while True: 
                         s = self.scanner.peek_at(i)
                         i += 1
-                        if s is None:
-                            break
-                        if s == char and read_string[-1] != "\\":
+                        if s is None or (s == char and read_string[-1] != "\\"):
                             break
                         read_string += s
                     # advance scanner and yield string token
