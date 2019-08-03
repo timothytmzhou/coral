@@ -9,7 +9,10 @@ class Parser:
         "+": op.add,
         "-": op.sub,
         "*": op.mul,
-        "/": op.truediv
+        "/": op.truediv,
+        "%": op.mod,
+        "&&": lambda a, b: a and b,
+        "||": lambda a, b: a or b
     }
 
     def __init__(self, tokens, module_name="main"):
@@ -18,21 +21,23 @@ class Parser:
         :param module_name: string used to name the Module object assigned to self.head
         """
         self.tokens = tokens
-        self.head = Module(
-            [self.parse(statement) for statement in self.split_statements()],
-            module_name
-        )
+        self.head = Module(self.parse(), module_name)
 
-    def split_statements(self):
+    def parse(self):
+        return [
+            self.parse_statement(statement)
+            for statement in self.split_statements(self.tokens)
+        ]
+
+    def split_statements(self, tokens):
         """
         :yield: sets of tokens separated by semicolons
         """
-        # TODO: more sophisticated handling to allow for brackets around loops
-        for k, g in itertools.groupby(self.tokens, lambda x: x.value != ";"):
+        for k, g in itertools.groupby(tokens, lambda x: x.value != ";"):
             if k:
                 yield tuple(g)
 
-    def parse(self, statement):
+    def parse_statement(self, statement):
         """
         :param statement: tuple of Token objects to be parsed into Expression nodes
         :return: appropriate AST_Node object
