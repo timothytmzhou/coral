@@ -78,12 +78,12 @@ class Lexer:
         performs lexical analysis on source to split it into more easily parsed tokens
         :yield: Token objects
         """
-        sorted_types = unpack(sorted_groupby(token_types, key=lambda x: len(x)))
+        sorted_token_types = unpack(sorted_groupby(token_types, key=lambda x: len(x)))
         for index, char in self.scanner.stream():
             if char in (" ", "\n"):
                 continue
             # check if the index is the start of a pre-defined token
-            for length, token in sorted_types:
+            for length, token in sorted_token_types:
                 if self.scanner.peek(length) == token:
                     if not (
                             token_types[token] == TokenType.KEYWORD and
