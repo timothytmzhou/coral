@@ -1,8 +1,9 @@
 from lexer import Lexer
 from parser import Parser
-from namespace import *
 
 
-lexer = Lexer(input())
+with open("test.coral") as f:
+    source = f.read()
+lexer = Lexer(source)
 parser = Parser(lexer.tokenize(), "test")
 parser.head.walk()

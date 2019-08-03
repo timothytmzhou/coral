@@ -1,4 +1,4 @@
-from structs import *
+from token import *
 from tree import *
 import itertools
 

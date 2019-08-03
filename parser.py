@@ -1,5 +1,5 @@
 from tree import *
-from structs import *
+from token import *
 import operator as op
 import itertools
 
@@ -61,6 +61,8 @@ class Parser:
             if token.token_type == TokenType.VALUE:
                 Node = token.node_type
                 yield Node(Node.cast(token.value))
+            elif token.token_type == TokenType.IDENTIFIER:
+                yield ObjectLookup(token.value)
             else:
                 yield token
 

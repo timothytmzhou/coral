@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from namespace import *
+from namespace import main
 
 
 class Module:
@@ -29,14 +29,14 @@ class Expression(AST_Node):
         pass
 
 
-# TODO: separate namespaces and scoping
 class Assignment(Statement):
-    def __init__(self, name, expression):
+    def __init__(self, name, expression, namespace=main):
         self.name = name
         self.expression = expression
+        self.namespace = namespace
 
     def exec(self):
-        main.set_var(self.name, self.expression.eval())
+        self.namespace.set_var(self.name, self.expression.eval())
 
 
 class Output(Statement):
@@ -45,6 +45,14 @@ class Output(Statement):
 
     def exec(self):
         print(self.expression.eval())
+
+
+class ObjectLookup(Expression):
+    def __init__(self, name):
+        self.name = name
+
+    def eval(self, namespace=main):
+        return namespace.get_var(self.name).value
 
 
 class Primitive(Expression):

@@ -1,30 +1,19 @@
-class Variable:
-    def __init__(self, name, value):
-        self.name = name
-        self.value = value
-
-    def __str__(self):
-        return f"{self.name} = {self.value}"
+from object import *
 
 
-class Namespace:
+class Namespace(Object):
     def __init__(self, name):
-        self.name = name
-        self.vars = []
+        super().__init__(name)
+        self.obj_dict = {}
 
     def get_var(self, name):
-        for var in self.vars:
-            if var.name == name:
-                return var.value
-        return None
+        if name in self.obj_dict:
+            return self.obj_dict[name]
+        else:
+            raise LookupError
 
     def set_var(self, name, value):
-        for var in self.vars:
-            if var.name == name:
-                var.value = value
-                break
-        else:
-            self.vars.append(Variable(name, value))
+        self.obj_dict[name] = Var(name, value)
 
 
 main = Namespace("main")
