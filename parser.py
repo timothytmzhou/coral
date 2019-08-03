@@ -49,10 +49,10 @@ class Parser:
                 )
 
     def parse_expr(self, expr):
-        expr = tuple(self.parse_primitives(expr))
+        expr = tuple(self.parse_values(expr))
         return self.combine(expr)
 
-    def parse_primitives(self, expr):
+    def parse_values(self, expr):
         """
         :param expr: tuple of Token objects
         :yield: stream of tokens with primitives parsed as nodes
