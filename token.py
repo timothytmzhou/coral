@@ -23,10 +23,11 @@ class TokenType(Enum):
     BINARY = 2
     IDENTIFIER = 3
     VALUE = 4
-    KEYWORD = 5
-    SYMBOL = 6
-    GROUPING = 7
-    SEPARATOR = 8
+    CONTROL_FLOW = 5
+    KEYWORD = 6
+    SYMBOL = 7
+    GROUPING = 8
+    SEPARATOR = 9
 
 
 # token types initialization
@@ -37,7 +38,8 @@ def add_tokens(token_type, tokens):
 
 add_tokens(TokenType.UNARY, ("!", "++", "--"))
 add_tokens(TokenType.BINARY, ("=", "+", "-", "*", "/", "%", "&&", "||", "<", ">"))
-add_tokens(TokenType.KEYWORD, ("if", "elif", "else", "while", "for", "do", "print"))
-add_tokens(TokenType.SYMBOL, (";",))
-add_tokens(TokenType.GROUPING, ("(", ")", "{", "}"))
+add_tokens(TokenType.CONTROL_FLOW, ("if", "elif", "else", "while", "for", "do"))
+add_tokens(TokenType.KEYWORD, ("print",))
+add_tokens(TokenType.SYMBOL, (":", "=>"))
+add_tokens(TokenType.GROUPING, ("(", ")", "{", "}", ";"))
 add_tokens(TokenType.SEPARATOR, (" ", ","))

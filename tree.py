@@ -47,6 +47,25 @@ class Output(Statement):
         print(self.expression.eval())
 
 
+class ControlFlowElement(Statement):
+    def __init__(self, statements):
+        self.statements = statements
+
+    def __exec__(self):
+        for statement in self.statements():
+            statement.exec()
+
+
+class If(ControlFlowElement):
+    def __init__(self, statements, condition):
+        super().__init__(statements)
+        self.condition = condition
+
+    def __exec__(self):
+        if self.condition.eval():
+            super().exec()
+
+
 class ObjectLookup(Expression):
     def __init__(self, name):
         self.name = name

@@ -24,18 +24,18 @@ class Parser:
         self.head = Module(self.parse(), module_name)
 
     def parse(self):
-        return [
-            self.parse_statement(statement)
-            for statement in self.split_statements(self.tokens)
-        ]
-
-    def split_statements(self, tokens):
-        """
-        :yield: sets of tokens separated by semicolons
-        """
-        for k, g in itertools.groupby(tokens, lambda x: x.value != ";"):
-            if k:
-                yield tuple(g)
+        parsed = []
+        buffer = []
+        for token in self.tokens:
+            if token.token_type == TokenType.GROUPING:
+                if token.value == ";":
+                    parsed.append(self.parse_statement(buffer))
+                    buffer.clear()
+            elif token.token_type == TokenType.CONTROL_FLOW:
+                pass
+            else:
+                buffer.append(token)
+        return parsed
 
     def parse_statement(self, statement):
         """
