@@ -2,8 +2,46 @@ from enum import Enum
 import string
 import operator as op
 
-
 allowed_identifier_chars = string.ascii_letters + string.digits + "_"
+
+binary_operators = {
+    "+": op.add,
+    "-": op.sub,
+    "*": op.mul,
+    "/": op.truediv,
+    "**": op.pow,
+    "@": op.matmul,
+    "%": op.mod,
+    ">": op.gt,
+    "<": op.lt,
+    "==": op.eq,
+    "!=": op.ne,
+    ">=": op.ge,
+    "<=": op.le,
+    ">>": op.rshift,
+    "<<": op.lshift,
+    "&": op.and_,
+    "|": op.or_,
+    "^": op.xor,
+    "&&": lambda a, b: a and b,
+    "||": lambda a, b: a or b,
+    "^^": lambda a, b: bool(a) != bool(b),
+    ":>": lambda a, b: a in b,
+}
+
+operator_precedence = (
+    ("**",),
+    ("*", "/", "@", "%"),
+    ("+", "-"),
+    ("<<", ">>"),
+    ("&",),
+    ("^",),
+    ("|",),
+    (":>", "<", ">", "<=", ">=", "!=", "=="),
+    ("&&",),
+    ("^^",),
+    ("||",),
+)
 
 
 class Token:
@@ -34,18 +72,10 @@ class TokenType(Enum):
 # token types initialization
 token_types = {}
 
+
 def add_tokens(token_type, tokens):
     token_types.update({token: token_type for token in tokens})
 
-binary_operators = {
-    "+": op.add,
-    "-": op.sub,
-    "*": op.mul,
-    "/": op.truediv,
-    "%": op.mod,
-    "&&": lambda a, b: a and b,
-    "||": lambda a, b: a or b
-    }
 
 add_tokens(TokenType.UNARY, ("!", "++", "--"))
 add_tokens(TokenType.BINARY, tuple(binary_operators))

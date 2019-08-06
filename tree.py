@@ -99,7 +99,7 @@ class String(Primitive):
     pass
 
 
-def UnaryOperator(Expression):
+class UnaryOperator(Expression):
     def __init__(self, func, value):
         self.func = func
         self.value = value

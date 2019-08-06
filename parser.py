@@ -109,9 +109,10 @@ class Parser:
         :return: appropriate Expression node
         """
         expr = tuple(self.combine_parenthesis(expr))
-        expr = tuple(self.combine_binary_operators(expr, "*", "/"))
-        expr = next(self.combine_binary_operators(expr, "+", "-"))
-        return expr
+        for operators in operator_precedence:
+            expr = tuple(self.combine_binary_operators(expr, operators))
+        return expr[0]
+
 
     def combine_parenthesis(self, expr):
         """
@@ -129,7 +130,7 @@ class Parser:
                 yield token
             i += 1
 
-    def combine_binary_operators(self, expr, *operators):
+    def combine_binary_operators(self, expr, operators):
         """
         :param expr: tuple of Token objects
         :param operators: operators to be combined
@@ -143,7 +144,7 @@ class Parser:
                     BinaryOperator(binary_operators[middle.value], left, right),
                     *expr[i + 3:]
                 )
-                yield from self.combine_binary_operators(combined, *operators)
+                yield from self.combine_binary_operators(combined, operators)
                 break
             else:
                 yield left
