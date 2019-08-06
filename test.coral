@@ -1,7 +1,0 @@
-x = 2 * 3 + (4 * (3 - 1));
-print x;
-if true {
-        print "nested conditionals";
-        print "multiple statements";
-    }
-}
