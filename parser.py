@@ -1,40 +1,72 @@
 from tree import *
 from token import *
-import operator as op
-import itertools
+
+
+def read_until_char(tokens, char):
+    """
+    reads tokens until a specific value
+    :param tokens: tuple of token objects
+    :param char: the character to read until
+    :return: the number of read tokens, the read tokens
+    """
+    i = 0
+    while tokens[i].value != char:
+        i += 1
+    return i, tokens[:i]
+
+def read_until_balanced(tokens, open, close):
+    """
+    reads tokens until there is a balanced amount of opening and closing bracket-types
+    :param tokens: tuple of token objects
+    :param open: opening bracket-type
+    :param close: closing bracket-type
+    :return: the number of read tokens, the read tokens
+    """
+    buffer = []
+    level = 0
+    for token in tokens:
+        if token.value == open:
+            level += 1
+        elif token.value == close:
+            level -= 1
+        buffer.append(token)
+        if not level:
+            break
+    else:
+        raise SyntaxError("unbalanced bracketed expression detected")
+    return len(buffer), buffer[1:-1]
 
 
 class Parser:
-    binary_operators = {
-        "+": op.add,
-        "-": op.sub,
-        "*": op.mul,
-        "/": op.truediv,
-        "%": op.mod,
-        "&&": lambda a, b: a and b,
-        "||": lambda a, b: a or b
-    }
-
     def __init__(self, tokens, module_name="main"):
         """
         :param tokens: generator yielding Token objects
         :param module_name: string used to name the Module object assigned to self.head
         """
-        self.tokens = tokens
-        self.head = Module(self.parse(), module_name)
+        self.head = Module(self.parse(tuple(tokens)), module_name)
 
-    def parse(self):
+    def parse(self, tokens):
         parsed = []
         buffer = []
-        for token in self.tokens:
+        i = 0
+        while i < len(tokens):
+            token = tokens[i]
             if token.token_type == TokenType.GROUPING:
                 if token.value == ";":
                     parsed.append(self.parse_statement(buffer))
                     buffer.clear()
+                i += 1
             elif token.token_type == TokenType.CONTROL_FLOW:
-                pass
+                if token.value == "if":
+                    i += 1
+                    conditional_length, condition = read_until_char(tokens[i:], "{")
+                    i += conditional_length
+                    block_length, statements = read_until_balanced(tokens[i:], "{", "}")
+                    i += block_length
+                    parsed.append(If(self.parse_expr(condition), self.parse(statements)))
             else:
                 buffer.append(token)
+                i += 1
         return parsed
 
     def parse_statement(self, statement):
@@ -86,22 +118,13 @@ class Parser:
         :param expr: tuple of Token objects
         :yield: stream of tokens with parenthesized expressions parsed as nodes
         """
-        paren_stack = []
         i = 0
         while i < len(expr):
             token = expr[i]
             if isinstance(token, Token) and token.value == "(":
-                start = i + 1
-                paren_stack.append(token)
-                while len(paren_stack):
-                    i += 1
-                    if i == len(expr):
-                        raise SyntaxError("unbalanced parenthesized expression")
-                    elif expr[i].value == "(":
-                        paren_stack.append(expr[i])
-                    elif expr[i].value == ")":
-                        paren_stack.pop()
-                yield self.combine(expr[start: i])
+                length, sub = read_until_balanced(expr, "{", "}")
+                i += length
+                yield self.combine(sub)
             else:
                 yield token
             i += 1
@@ -117,7 +140,7 @@ class Parser:
             left, middle, right = expr[i : i + 3]
             if isinstance(middle, Token) and middle.value in operators:
                 combined = (
-                    BinaryOperator(Parser.binary_operators[middle.value], left, right),
+                    BinaryOperator(binary_operators[middle.value], left, right),
                     *expr[i + 3:]
                 )
                 yield from self.combine_binary_operators(combined, *operators)

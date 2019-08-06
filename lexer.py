@@ -56,9 +56,7 @@ class Scanner:
         :param n: how many characters to peek ahead
         :return: character at self.pos + n
         """
-        if self.pos + n >= self.len:
-            return None
-        else:
+        if self.pos + n < self.len:
             return self.source[self.pos + n]
 
     def advance(self, n):
@@ -106,6 +104,7 @@ class Lexer:
                     identifier = self.read_identifier()
                     yield Token(TokenType.IDENTIFIER, identifier)
                 else:
+                    print(char)
                     raise SyntaxError("improper token found")
 
     def read_string(self, quote_type):
@@ -159,9 +158,7 @@ class Lexer:
         i = 0
         while True:
             s = self.scanner.peek_at(i)
-            if s is None:
-                break
-            if s in allowed_identifier_chars:
+            if s is not None and s in allowed_identifier_chars:
                 identifier += s
             else:
                 break

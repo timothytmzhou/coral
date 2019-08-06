@@ -51,17 +51,17 @@ class ControlFlowElement(Statement):
     def __init__(self, statements):
         self.statements = statements
 
-    def __exec__(self):
-        for statement in self.statements():
+    def exec(self):
+        for statement in self.statements:
             statement.exec()
 
 
 class If(ControlFlowElement):
-    def __init__(self, statements, condition):
+    def __init__(self, condition, statements):
         super().__init__(statements)
         self.condition = condition
 
-    def __exec__(self):
+    def exec(self):
         if self.condition.eval():
             super().exec()
 

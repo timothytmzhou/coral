@@ -1,5 +1,6 @@
 from enum import Enum
 import string
+import operator as op
 
 
 allowed_identifier_chars = string.ascii_letters + string.digits + "_"
@@ -36,10 +37,20 @@ token_types = {}
 def add_tokens(token_type, tokens):
     token_types.update({token: token_type for token in tokens})
 
+binary_operators = {
+    "+": op.add,
+    "-": op.sub,
+    "*": op.mul,
+    "/": op.truediv,
+    "%": op.mod,
+    "&&": lambda a, b: a and b,
+    "||": lambda a, b: a or b
+    }
+
 add_tokens(TokenType.UNARY, ("!", "++", "--"))
-add_tokens(TokenType.BINARY, ("=", "+", "-", "*", "/", "%", "&&", "||", "<", ">"))
+add_tokens(TokenType.BINARY, tuple(binary_operators))
 add_tokens(TokenType.CONTROL_FLOW, ("if", "elif", "else", "while", "for", "do"))
 add_tokens(TokenType.KEYWORD, ("print",))
-add_tokens(TokenType.SYMBOL, (":", "=>"))
+add_tokens(TokenType.SYMBOL, ("=", ":", "=>"))
 add_tokens(TokenType.GROUPING, ("(", ")", "{", "}", ";"))
 add_tokens(TokenType.SEPARATOR, (" ", ","))
