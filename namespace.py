@@ -4,7 +4,11 @@ from object import *
 class Namespace(Object):
     def __init__(self, name):
         super().__init__(name)
-        self.obj_dict = {}
+        self.obj_dict = {
+            "true": Var("true", True),
+            "false": Var("false", False),
+            "null": Var("null", None)
+        }
 
     def get_var(self, name):
         if name in self.obj_dict:
