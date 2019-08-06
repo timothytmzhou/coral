@@ -21,10 +21,10 @@ def unpack(grouped):
     :param grouped: itertools.groupby object
     :return: list containing tuples of form (key_val, element) for every element in all groups
     """
-    return [
+    return tuple(
         (key_val, e) for key_val, group in grouped
         for e in group
-    ]
+    )
 
 
 class Scanner:
@@ -104,7 +104,6 @@ class Lexer:
                     identifier = self.read_identifier()
                     yield Token(TokenType.IDENTIFIER, identifier)
                 else:
-                    print(char)
                     raise SyntaxError("improper token found")
 
     def read_string(self, quote_type):
