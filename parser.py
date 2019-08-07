@@ -1,5 +1,5 @@
 from tree import *
-from token import *
+from tokens import *
 
 
 def read_until_char(tokens, char):
