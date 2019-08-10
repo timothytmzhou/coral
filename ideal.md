@@ -8,6 +8,6 @@ func gcd(a : int, b : int) -> int {
     return a;
 }
 
-for (i = 1; i < 10; i++;) {
+for (let i = 1; i < 10; i++;) {
     print(gcd(50, i));
 }

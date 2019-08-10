@@ -22,13 +22,15 @@ def read_until_balanced(tokens, open, close):
     :param close: closing bracket-type
     :return: the number of read tokens, the read tokens
     """
+    assert tokens[0].value == open
     buffer = []
     level = 0
     for token in tokens:
-        if token.value == open:
-            level += 1
-        elif token.value == close:
-            level -= 1
+        if isinstance(token, Token):
+            if token.value == open:
+                level += 1
+            elif token.value == close:
+                level -= 1
         buffer.append(token)
         if not level:
             break
@@ -51,15 +53,14 @@ class Parser:
         i = 0
         while i < len(tokens):
             token = tokens[i]
-            if token.token_type == TokenType.GROUPING:
-                if token.value == ";":
-                    parsed.append(self.parse_statement(buffer))
-                    buffer.clear()
+            if token.value == ";":
+                parsed.append(self.parse_statement(buffer))
+                buffer.clear()
                 i += 1
             elif token.token_type == TokenType.CONTROL_FLOW:
                 if token.value == "if":
                     i += 1
-                    conditional_length, condition = read_until_char(tokens[i:], "{")
+                    conditional_length, condition = read_until_balanced(tokens[i:], "(", ")")
                     i += conditional_length
                     block_length, statements = read_until_balanced(tokens[i:], "{", "}")
                     i += block_length
@@ -123,7 +124,7 @@ class Parser:
         while i < len(expr):
             token = expr[i]
             if isinstance(token, Token) and token.value == "(":
-                length, sub = read_until_balanced(expr, "{", "}")
+                length, sub = read_until_balanced(expr[i:], "(", ")")
                 i += length
                 yield self.combine(sub)
             else:
