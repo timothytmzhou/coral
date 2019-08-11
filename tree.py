@@ -7,7 +7,6 @@ class Module:
         self.statements = statements
         self.name = name
 
-
     def walk(self):
         for statement in self.statements:
             statement.exec()

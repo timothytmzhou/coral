@@ -14,6 +14,7 @@ def read_until_char(tokens, char):
         i += 1
     return i, tokens[:i]
 
+
 def read_until_balanced(tokens, open, close):
     """
     reads tokens until there is a balanced amount of opening and closing bracket-types
@@ -94,7 +95,7 @@ class Parser:
         for i, token in enumerate(statement):
             if token.value == "=":
                 return Assignment(
-                    statement [i - 1].value,
+                    statement[i - 1].value,
                     self.parse_expr(statement[i + 1:])
                 )
             elif token.value == "print":
@@ -130,7 +131,6 @@ class Parser:
             expr = tuple(self.combine_binary_operators(expr, operators))
         return expr[0]
 
-
     def combine_parenthesis(self, expr):
         """
         :param expr: tuple of Token objects
@@ -155,7 +155,7 @@ class Parser:
         """
         i = 0
         while i < len(expr) - 2:
-            left, middle, right = expr[i : i + 3]
+            left, middle, right = expr[i: i + 3]
             if isinstance(middle, Token) and middle.value in operators:
                 combined = (
                     BinaryOperator(binary_operators[middle.value], left, right),
