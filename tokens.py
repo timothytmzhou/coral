@@ -83,6 +83,9 @@ add_tokens(TokenType.UNARY, ("!", "++", "--"))
 add_tokens(TokenType.BINARY, tuple(binary_operators))
 add_tokens(TokenType.CONTROL_FLOW, ("if", "elif", "else", "while", "for", "do"))
 add_tokens(TokenType.KEYWORD, ("print",))
-add_tokens(TokenType.SYMBOL, ("=", ":", "=>"))
+add_tokens(
+    TokenType.SYMBOL,
+    (":", "=>", "=", "+=", "-=", "*=", "/=", "**=", "%=", "@=", ">>=", "<<=", "&=", "|=", "^=")
+)
 add_tokens(TokenType.GROUPING, ("(", ")", "{", "}", ";"))
 add_tokens(TokenType.SEPARATOR, (" ", ","))

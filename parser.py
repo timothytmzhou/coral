@@ -1,8 +1,9 @@
+import re
 from tree import *
 from tokens import *
 
 
-#TODO: update/add docstrings
+# TODO: update/add docstrings
 def read_until_char(tokens, char):
     """
     reads tokens until a specific value
@@ -99,11 +100,23 @@ class Parser:
         :return: appropriate AST_Node object
         """
         for i, token in enumerate(statement):
-            if token.value == "=":
-                return Assignment(
-                    statement[i - 1].value,
-                    self.parse_expr(statement[i + 1:])
-                )
+            if token.token_type == TokenType.SYMBOL:
+                if token.value == "=":
+                    return Assignment(
+                        statement[i - 1].value,
+                        self.parse_expr(statement[i + 1:])
+                    )
+                elif re.match(".*=", token.value):
+                    identifier = statement[i - 1].value
+                    return Assignment(
+                        identifier,
+                        BinaryOperator(
+                            binary_operators[token.value[:-1]],
+                            ObjectLookup(identifier),
+                            self.parse_expr(statement[i + 1:])
+                        )
+                    )
+
             elif token.value == "print":
                 return Output(
                     self.parse_expr(statement[i + 1:])
