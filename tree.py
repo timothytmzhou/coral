@@ -68,6 +68,16 @@ class Conditional(ControlFlowElement):
             self.next_node.exec()
 
 
+class While(ControlFlowElement):
+    def __init__(self, condition, statements):
+        super().__init__(statements)
+        self.condition = condition
+
+    def exec(self):
+        while self.condition.eval():
+            super().exec()
+
+
 class ObjectLookup(Expression):
     def __init__(self, name):
         self.name = name

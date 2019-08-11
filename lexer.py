@@ -27,6 +27,7 @@ def unpack(grouped):
     )
 
 
+# TODO: refactor code by removing Scanner class (doesn't really make code cleaner)
 class Scanner:
     def __init__(self, source):
         self.pos = 0

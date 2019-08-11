@@ -2,6 +2,7 @@ from tree import *
 from tokens import *
 
 
+#TODO: update/add docstrings
 def read_until_char(tokens, char):
     """
     reads tokens until a specific value
@@ -61,31 +62,36 @@ class Parser:
                 i += 1
             elif token.token_type == TokenType.CONTROL_FLOW:
                 if token.value == "if":
-                    i, last = self.parse_conditional(i, tokens, True)
+                    i, condition, statements = self.parse_control_flow(i, tokens)
+                    last = Conditional(condition, statements)
                     parsed.append(last)
                     while i < len(tokens) and tokens[i].value in ("elif", "else"):
                         is_else = tokens[i].value == "else"
-                        i, current = self.parse_conditional(i, tokens, not is_else)
+                        i, condition, statements = self.parse_control_flow(i, tokens, not is_else)
+                        current = Conditional(condition, statements)
                         last.next_node = current
                         last = current
                         if is_else:
                             break
+                elif token.value == "while":
+                    i, condition, statements = self.parse_control_flow(i, tokens)
+                    parsed.append(While(condition, statements))
             else:
                 buffer.append(token)
                 i += 1
         return parsed
 
-    def parse_conditional(self, i, tokens, has_condition):
+    def parse_control_flow(self, i, tokens, has_expression=True):
         i += 1
-        if has_condition:
-            conditional_length, condition = read_until_balanced(tokens[i:], "(", ")")
-            condition = self.parse_expr(condition)
-            i += conditional_length
+        if has_expression:
+            expression_len, expression = read_until_balanced(tokens[i:], "(", ")")
+            expression = self.parse_expr(expression)
+            i += expression_len
         else:
-            condition = ObjectLookup("true")
-        block_length, statements = read_until_balanced(tokens[i:], "{", "}")
-        i += block_length
-        return i, Conditional(condition, self.parse(statements))
+            expression = ObjectLookup("true")
+        block_len, statements = read_until_balanced(tokens[i:], "{", "}")
+        i += block_len
+        return i, expression, self.parse(statements)
 
     def parse_statement(self, statement):
         """
