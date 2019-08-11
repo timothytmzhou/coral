@@ -4,19 +4,6 @@ from tokens import *
 
 
 # TODO: update/add docstrings
-def read_until_char(tokens, char):
-    """
-    reads tokens until a specific value
-    :param tokens: tuple of token objects
-    :param char: the character to read until
-    :return: the number of read tokens, the read tokens
-    """
-    i = 0
-    while tokens[i].value != char:
-        i += 1
-    return i, tokens[:i]
-
-
 def read_until_balanced(tokens, open, close):
     """
     reads tokens until there is a balanced amount of opening and closing bracket-types
