@@ -53,22 +53,38 @@ class Parser:
         i = 0
         while i < len(tokens):
             token = tokens[i]
+            # split semicolons
             if token.value == ";":
                 parsed.append(self.parse_statement(buffer))
                 buffer.clear()
                 i += 1
             elif token.token_type == TokenType.CONTROL_FLOW:
                 if token.value == "if":
-                    i += 1
-                    conditional_length, condition = read_until_balanced(tokens[i:], "(", ")")
-                    i += conditional_length
-                    block_length, statements = read_until_balanced(tokens[i:], "{", "}")
-                    i += block_length
-                    parsed.append(If(self.parse_expr(condition), self.parse(statements)))
+                    i, last = self.parse_conditional(i, tokens, True)
+                    parsed.append(last)
+                    while i < len(tokens) and tokens[i].value in ("elif", "else"):
+                        is_else = tokens[i].value == "else"
+                        i, current = self.parse_conditional(i, tokens, not is_else)
+                        last.next_node = current
+                        last = current
+                        if is_else:
+                            break
             else:
                 buffer.append(token)
                 i += 1
         return parsed
+
+    def parse_conditional(self, i, tokens, has_condition):
+        i += 1
+        if has_condition:
+            conditional_length, condition = read_until_balanced(tokens[i:], "(", ")")
+            condition = self.parse_expr(condition)
+            i += conditional_length
+        else:
+            condition = ObjectLookup("true")
+        block_length, statements = read_until_balanced(tokens[i:], "{", "}")
+        i += block_length
+        return i, Conditional(condition, self.parse(statements))
 
     def parse_statement(self, statement):
         """

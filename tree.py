@@ -56,14 +56,17 @@ class ControlFlowElement(Statement):
             statement.exec()
 
 
-class If(ControlFlowElement):
-    def __init__(self, condition, statements):
+class Conditional(ControlFlowElement):
+    def __init__(self, condition, statements, next_node=None):
         super().__init__(statements)
         self.condition = condition
+        self.next_node = next_node
 
     def exec(self):
         if self.condition.eval():
             super().exec()
+        elif self.next_node is not None:
+            self.next_node.exec()
 
 
 class ObjectLookup(Expression):
