@@ -1,23 +1,27 @@
-from more_itertools import peekable
+from more_itertools import peekable, consume
 
 
-class StreamMeta(type):
-    no_override = ["__new__", "__getattribute__", "__setattr__", "__delattr__", "__class__"]
-
-    def __new__(cls, name, parents, dct):
-        for m in dir(peekable):
-            if m not in dct and m not in StreamMeta.no_override:
-                dct[m] = lambda self, *args, m=m: getattr(peekable, m)(self.iterator, *args)
-        return type.__new__(cls, name, parents, dct)
-
-
-class Stream(metaclass=StreamMeta):
-    def __init__(self, iterator):
+class Stream(peekable):
+    def __init__(self, iterable):
         """
         wrapper class for peekable (that's a lot of wrapping!)
         :param iterator: base iterator
         """
-        self.iterator = peekable(iterator)
+        super().__init__(iterable)
+
+    def stream(self):
+        """
+        allows for iteration without consuming tokens
+        :yield: sequential tokens
+        """
+        i = 0
+        while True:
+            try:
+                yield self[i]
+            except IndexError:
+                raise StopIteration
+            i += 1
+
 
     def get(self, n):
         """
@@ -25,18 +29,18 @@ class Stream(metaclass=StreamMeta):
         :param n: number of elements to pop
         :return: whether n elements were left in self.iterator, popped elements
         """
-        buffer = peekable[:n]
+        buffer = self[:n]
         return len(buffer) == n, buffer
 
-    def consume(self, n):
+    def consume(self, n=None):
         """
         consume n elements
-        :param n: number of elements to consume
+        :param n: number of elements to consume (if None consume all)
         :return: True if there were n elements left to consume
         """
         try:
             for i in range(n):
-                next(self.iterator)
+                next(self)
         except StopIteration:
             return False
         else:

@@ -27,7 +27,7 @@ def unpack(grouped):
     )
 
 
-# TODO: refactor code by removing Scanner class (doesn't really make code cleaner)
+# TODO: refactor code by replacing Scanner with a Stream
 class Scanner:
     def __init__(self, source):
         self.pos = 0
