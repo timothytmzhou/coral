@@ -1,10 +1,10 @@
-from more_itertools import peekable, consume
+from more_itertools import peekable
 
 
 class Stream(peekable):
     def __init__(self, iterable):
         """
-        wrapper class for peekable (that's a lot of wrapping!)
+        subclass for peekable providing several helper methods
         :param iterator: base iterator
         """
         super().__init__(iterable)
@@ -21,16 +21,6 @@ class Stream(peekable):
             except IndexError:
                 raise StopIteration
             i += 1
-
-
-    def get(self, n):
-        """
-        pop n elements
-        :param n: number of elements to pop
-        :return: whether n elements were left in self.iterator, popped elements
-        """
-        buffer = self[:n]
-        return len(buffer) == n, buffer
 
     def consume(self, n=None):
         """
