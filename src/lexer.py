@@ -1,5 +1,6 @@
 from tokens import *
 from tree import *
+from stream import Stream
 import itertools
 
 
@@ -73,6 +74,9 @@ class Lexer:
         self.scanner = Scanner(source)
 
     def tokenize(self):
+        return Stream(self._tokenize())
+
+    def _tokenize(self):
         """
         performs lexical analysis on source to split it into more easily parsed tokens
         :yield: Token objects

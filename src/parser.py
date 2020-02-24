@@ -33,10 +33,7 @@ class Parser:
         return While(self.parse_expr(expr), self.parse(statements))
 
     def parse_conditional(self, expr, statements):
-        if_block = Conditional(self.parse_expr(expr), self.parse(statements))
-        while self.check_pattern(r"elif ( \e ) \b")
-
-
+        pass
 
     def match(self, tokens):
         token_index = 0
@@ -50,85 +47,6 @@ class Parser:
             else:
                 # TODO: more descriptive error
                 raise RuntimeError
-
-    def check_pattern(self, pattern, tokens):
-        """
-        iterate over tokens until they match entire pattern or they fail to match
-        :param pattern: string containing pattern to match against - see parse pattern for more info
-        :param tokens: tuple of tokens to match the pattern against
-        :return: (if the pattern matches, list of all variable tokens (\i, \e, \b, etc.))
-        """
-        # TODO: parse the pattern string properly
-        pattern = pattern.split()
-        token_index = 0
-        tokens_length = len(tokens)
-        args = []
-
-        for pattern_index, token_seq in enumerate(pattern):
-            if token_seq == r"\i":
-                if tokens[token_index].token_type == TokenType.IDENTIFIER:
-                    args.append(tokens[token_index].value)
-                    token_index += 1
-                else:
-                    return False, None, 0
-
-            elif token_seq == r"\e":
-                expression = []
-                next_in_pattern = pattern[pattern_index + 1]
-                if next_in_pattern in r"\i\e":
-                    # TODO: descriptive error for incorrect parse pattern
-                    raise RuntimeError
-                elif next_in_pattern == r"\b":
-                    next_in_pattern = "{"
-
-                while tokens[token_index].value != next_in_pattern:
-                    if token_index == tokens_length:
-                        return None, False
-                    expression.append(tokens[token_index].value)
-                    token_index += 1
-
-                args.append(expression)
-
-            elif token_seq == r"\b":
-                balanced = self.read_until_balanced(tokens[token_index:], "{", "}")
-                if balanced:
-                    length, block = balanced
-                    token_index += length
-                    args.append(block)
-                else:
-                    return None, False, 0
-
-            else:
-                if re.match(token_seq, tokens[token_index].value):
-                    token_index += 1
-                else:
-                    return None, False, 0
-
-        return True, args, token_index
-
-    def read_until_balanced(self, tokens, open_bracket, close_bracket):
-        """
-        reads tokens until there is a balanced amount of open_bracketing and closing bracket-types
-        :param tokens: tuple of token objects
-        :param open_bracket: open_bracketing bracket-type
-        :param close_bracket: closing bracket-type
-        :return: the number of read tokens, the read tokens if successful, else None
-        """
-
-        if tokens[0].value == open_bracket:
-            buffer = []
-            level = 0
-            for token in tokens:
-                if token.value == open_bracket:
-                    level += 1
-                elif token.value == close_bracket:
-                    level -= 1
-                buffer.append(token)
-                if not level:
-                    break
-            else:
-                raise SyntaxError("unbalanced bracketed expression detected")
-            return len(buffer), buffer[1:-1]
 
     def parse_expr(self, expr):
         expr = tuple(self.parse_values(expr))
