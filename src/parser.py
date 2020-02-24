@@ -1,6 +1,6 @@
-import re
 from tree import *
 from tokens import *
+from pattern import *
 
 
 # TODO: update/add docstrings

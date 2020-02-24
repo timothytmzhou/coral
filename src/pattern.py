@@ -1,4 +1,3 @@
-import itertools
 from abc import ABC, abstractmethod
 from tokens import TokenType, Token
 
@@ -24,6 +23,26 @@ class Pattern(ABC):
         :return: Match object
         """
         pass
+
+    def __add__(self, other):
+        if not isinstance(other, Pattern):
+            raise TypeError("cannot combine Pattern object with non-pattern")
+        # in the case of other + self, other.__add__ gets called
+        # reduce self + other to that case
+        elif isinstance(other, CombinedPattern):
+            return other + self
+        # must be two non-CombinedPattern objects as CombinedPattern overrides __add__
+        else:
+            return CombinedPattern(self, other)
+
+class CombinedPattern(Pattern):
+    def __init__(self, *patterns):
+        self.patterns = patterns
+
+    def __add__(self, other):
+        if isinstance(other, CombinedPattern):
+           return CombinedPattern(self.patterns + other.patterns)
+
 
 
 class TokenSequence(Pattern):
