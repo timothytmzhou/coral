@@ -35,14 +35,26 @@ class Pattern(ABC):
         else:
             return CombinedPattern(self, other)
 
+
 class CombinedPattern(Pattern):
     def __init__(self, *patterns):
         self.patterns = patterns
 
+    def match(self, token_stream):
+        matches = []
+        for i, pattern in enumerate(self.patterns):
+            m = pattern.match(token_stream)
+            if not m:
+                if i != 0:
+                    raise SyntaxError("unable to parse expected {}".format(pattern[i]))
+                return Match(False)
+            matches.append(m)
+        else:
+            return Match(True, groups=sum((match.groups for match in matches), []))
+
     def __add__(self, other):
         if isinstance(other, CombinedPattern):
-           return CombinedPattern(self.patterns + other.patterns)
-
+            return CombinedPattern(self.patterns + other.patterns)
 
 
 class TokenSequence(Pattern):
@@ -51,6 +63,7 @@ class TokenSequence(Pattern):
         directly matches against provided Token objects
         :param pattern: Any combination of Token objects and TokenTypes to match against
         """
+        # TODO: type check pattern
         self.pattern = pattern
         self.pattern_len = len(self.pattern)
 
@@ -64,10 +77,8 @@ class TokenSequence(Pattern):
         p = self.pattern[i]
         if isinstance(p, TokenType):
             return token.token_type == p
-        elif isinstance(p, Token):
-            return token == p
         else:
-            raise TypeError("TokenSequence pattern contains non-TokenType or Token object")
+            return token == p
 
     def match(self, token_stream):
         try:
@@ -81,9 +92,18 @@ class TokenSequence(Pattern):
             pass
         return Match(False)
 
+    def __str__(self):
+        stringified = []
+        for p in self.pattern:
+            if isinstance(p, TokenType):
+                stringified.append(p.name.lower())
+            elif isinstance(p, Token):
+                stringified.append(p.value)
+        return "sequence: {}".format(", ".join(stringified))
+
 
 class TerminatingSequence(Pattern):
-    def __init__(self, terminator=Token(TokenType.GROUPING, ";")):
+    def __init__(self, terminator=Token(";")):
         self.terminator = terminator
 
     def match(self, token_stream):
@@ -98,6 +118,9 @@ class TerminatingSequence(Pattern):
         except StopIteration:
             raise EOFError(
                 "attempted to parse terminating sequence against stream without terminator")
+
+    def __str__(self):
+        return "terminator: {}".format(self.terminator)
 
 
 class BracketedSequence(Pattern):
@@ -126,9 +149,12 @@ class BracketedSequence(Pattern):
             raise SyntaxError("unbalanced bracketed expression detected")
         return Match(len(buffer), buffer[1:-1])
 
+    def __str__(self):
+        return "bracketed sequence: {0}...{1}".format(self.open, self.close)
+
 
 class DelimitedSequence(Pattern):
-    def __init__(self, filter_func=lambda x: True, delimiter=Token(TokenType.SEPARATOR, ",")):
+    def __init__(self, filter_func=lambda x: True, delimiter=Token(",")):
         """
         pattern for matching against a delimited sequence e.g list, function args, etc.
         :param delimiter: Token delimiter - default is separator comma
@@ -152,3 +178,12 @@ class DelimitedSequence(Pattern):
             else:
                 break
         return Match(True, groups)
+
+    def __str__(self):
+        return "delimited sequence: {}".format(self.delimiter)
+
+
+# some predefined patterns
+eof = TerminatingSequence()
+parenthetical = BracketedSequence(Token("("), Token(")"))
+code_block = BracketedSequence(Token("{"), Token("}"))

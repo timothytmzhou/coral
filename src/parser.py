@@ -4,8 +4,6 @@ from pattern import *
 
 
 # TODO: update/add docstrings
-
-
 class Parser:
     def __init__(self, tokens, module_name="main"):
         """
@@ -16,11 +14,9 @@ class Parser:
             print(f"{f}: {args}")
         # self.head = Module(self.parse(tuple(tokens)), module_name)
 
-    def parse(self, tokens):
+    def parse(self, token_stream, patterns):
         parsed = []
-        for f, args in self.match(tuple(tokens)):
-            parsed.append(f(self, *args))
-
+        # TODO: write this
         return parsed
 
     def parse_assignment(self, identifier, expr):
@@ -33,22 +29,11 @@ class Parser:
         return While(self.parse_expr(expr), self.parse(statements))
 
     def parse_conditional(self, expr, statements):
+        # note: use elif/else patterns and self.parse for this
         pass
 
-    def match(self, tokens):
-        token_index = 0
-        while token_index < len(tokens):
-            for p, func in Parser.patterns.items():
-                is_match, args, length = self.check_pattern(p, tokens[token_index:])
-                if is_match:
-                    yield func, args
-                    token_index += length
-                    break
-            else:
-                # TODO: more descriptive error
-                raise RuntimeError
-
     def parse_expr(self, expr):
+        # TODO: switch to Pratt parser
         expr = tuple(self.parse_values(expr))
         return self.combine(expr)
 
@@ -116,8 +101,8 @@ class Parser:
                 yield token
 
     patterns = {
-        r"\i = \e ;": parse_assignment,
-        r"print \e ;": parse_output,
-        r"while ( \e ) \b": parse_while,
-        r"if ( \e ) \b": parse_conditional  # elif and else pattern defined in parse_conditional
+        TokenSequence(TokenType.IDENTIFIER, Token("=")) + eof: parse_assignment,
+        TokenSequence(Token("print")) + eof: parse_output,
+        TokenSequence(Token("while")) + parenthetical + code_block: parse_while,
+        # TODO: conditionals (make parse take patterns and return list)
     }
