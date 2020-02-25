@@ -4,6 +4,8 @@ from tokens import TokenType, Token
 
 class Match:
     def __init__(self, is_match, groups=None):
+        if groups is None:
+            groups = []
         self.is_match = is_match
         self.groups = groups
 
@@ -50,11 +52,13 @@ class CombinedPattern(Pattern):
                 return Match(False)
             matches.append(m)
         else:
-            return Match(True, groups=sum((match.groups for match in matches), []))
+            return Match(True, groups=[match.groups for match in matches if len(match.groups)])
 
     def __add__(self, other):
         if isinstance(other, CombinedPattern):
             return CombinedPattern(self.patterns + other.patterns)
+        elif isinstance(other, Pattern):
+            return CombinedPattern(*self.patterns, other)
 
 
 class TokenSequence(Pattern):
@@ -82,8 +86,8 @@ class TokenSequence(Pattern):
 
     def match(self, token_stream):
         try:
-            for i, token in enumerate(token_stream.stream()):
-                if not self.check_token(i, token):
+            for i, token in enumerate(self.pattern):
+                if not self.check_token(i, token_stream[i]):
                     break
             else:
                 token_stream.consume(self.pattern_len)
@@ -111,10 +115,13 @@ class TerminatingSequence(Pattern):
         consumes tokens until a terminator is found
         :return: Match(True) (error if terminator not found)
         """
+        groups = []
         try:
             for token in token_stream:
                 if token == self.terminator:
-                    return Match(True)
+                    return Match(True, groups=groups)
+                else:
+                    groups.append(token)
         except StopIteration:
             raise EOFError(
                 "attempted to parse terminating sequence against stream without terminator")

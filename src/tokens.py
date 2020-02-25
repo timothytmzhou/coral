@@ -60,7 +60,7 @@ class TokenType(Enum):
 
 class Token:
     def __init__(self, value, token_type=None, node_type=None):
-        if token_type == None:
+        if token_type is None:
             token_type = token_types[value]
         self.token_type = token_type
         self.value = value
@@ -71,6 +71,16 @@ class Token:
         if self.node_type is not None:
             string += f", {self.node_type.__name__}"
         return string
+
+    def __eq__(self, other):
+        if isinstance(other, Token):
+            return (
+                    self.token_type == other.token_type and
+                    self.value == other.value and
+                    self.node_type == other.node_type
+            )
+        else:
+            return False
 
 
 # token types initialization

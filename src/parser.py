@@ -5,18 +5,31 @@ from pattern import *
 
 # TODO: update/add docstrings
 class Parser:
-    def __init__(self, tokens, module_name="main"):
+    def __init__(self, token_stream, module_name="main"):
         """
-        :param tokens: generator yielding Token objects
+        :param token_stream: Stream object from lexer
         :param module_name: string used to name the Module object assigned to self.head
         """
-        for f, args in self.match(tuple(tokens)):
-            print(f"{f}: {args}")
-        # self.head = Module(self.parse(tuple(tokens)), module_name)
+        self.token_stream = token_stream
+        self.head = Module(self.parse(), module_name)
 
-    def parse(self, token_stream, patterns):
+    def parse(self, patterns=None):
+        """
+        parse token_stream against a patterns dict
+        :param patterns: dict of form {pattern: func}
+        :return: list of Statement nodes
+        """
+        if patterns is None:
+            patterns = Parser.patterns
         parsed = []
-        # TODO: write this
+        while self.token_stream:
+            for pattern, func in patterns.items():
+                m = pattern.match(self.token_stream)
+                if m:
+                    parsed.append(func(self, *m.groups))
+                    break
+            else:
+                raise SyntaxError
         return parsed
 
     def parse_assignment(self, identifier, expr):

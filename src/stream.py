@@ -35,3 +35,6 @@ class Stream(peekable):
             return False
         else:
             return True
+
+    def __str__(self):
+        return "<Stream object> {{\n    {}\n}}".format(",\n    ".join((map(str, self[:]))))
