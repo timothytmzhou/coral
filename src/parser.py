@@ -13,7 +13,7 @@ class Parser:
         self.token_stream = token_stream
         self.head = Module(self.parse(), module_name)
 
-    def parse(self, token_stream=None, patterns=None):
+    def parse(self, token_stream=None, patterns=None, raise_error=True):
         """
         parse token_stream against a patterns dict
         :param patterns: dict of form {pattern: func}
@@ -34,7 +34,10 @@ class Parser:
                         parsed.append(func(self, m.groups))
                     break
             else:
-                raise SyntaxError
+                if raise_error:
+                    raise SyntaxError
+                else:
+                    break
         return parsed
 
     def parse_assignment(self, identifier, expr):
@@ -46,9 +49,30 @@ class Parser:
     def parse_while(self, expr, statements):
         return While(self.parse_expr(expr), self.parse(statements))
 
-    def parse_conditional(self, expr, statements):
-        # note: use elif/else patterns and self.parse for this
-        pass
+    def parse_if(self, expr, statements):
+        root = Conditional(self.parse_expr(expr), self.parse(statements))
+        elifs = self.parse(
+            patterns={TokenSequence(Token("elif")) + parenthetical + code_block:
+                          Parser.parse_elif},
+            raise_error=False
+        )
+        else_block = self.parse(patterns={
+            TokenSequence(Token("else")) + code_block:
+                Parser.parse_else},
+            raise_error=False
+        )
+        previous = root
+        for conditional in elifs + else_block:
+            previous.next_node = conditional
+            previous = conditional
+        return root
+
+    def parse_elif(self, expr, statements):
+        return Conditional(self.parse_expr(expr), self.parse(statements))
+
+    def parse_else(self, statements):
+        print(statements)
+        return Conditional(ObjectLookup("true"), self.parse(statements))
 
     def parse_expr(self, expr):
         # TODO: switch to Pratt parser
@@ -123,5 +147,5 @@ class Parser:
         TokenSequence(TokenType.IDENTIFIER, Token("=")) + eof: parse_assignment,
         TokenSequence(Token("print")) + eof: parse_output,
         TokenSequence(Token("while")) + parenthetical + code_block: parse_while,
-        # TODO: conditionals (make parse take patterns and return list)
+        TokenSequence(Token("if")) + parenthetical + code_block: parse_if
     }
