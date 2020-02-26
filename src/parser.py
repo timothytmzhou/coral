@@ -13,7 +13,7 @@ class Parser:
         self.token_stream = token_stream
         self.head = Module(self.parse(), module_name)
 
-    def parse(self, patterns=None):
+    def parse(self, token_stream=None, patterns=None):
         """
         parse token_stream against a patterns dict
         :param patterns: dict of form {pattern: func}
@@ -21,19 +21,24 @@ class Parser:
         """
         if patterns is None:
             patterns = Parser.patterns
+        if token_stream is None:
+            token_stream = self.token_stream
         parsed = []
-        while self.token_stream:
+        while token_stream:
             for pattern, func in patterns.items():
-                m = pattern.match(self.token_stream)
+                m = pattern.match(token_stream)
                 if m:
-                    parsed.append(func(self, *m.groups))
+                    if isinstance(pattern, CombinedPattern):
+                        parsed.append(func(self, *m.groups))
+                    else:
+                        parsed.append(func(self, m.groups))
                     break
             else:
                 raise SyntaxError
         return parsed
 
     def parse_assignment(self, identifier, expr):
-        return Assignment(identifier, self.parse_expr(expr))
+        return Assignment(identifier[0].value, self.parse_expr(expr))
 
     def parse_output(self, expr):
         return Output(self.parse_expr(expr))
@@ -83,7 +88,8 @@ class Parser:
         while i < len(expr):
             token = expr[i]
             if isinstance(token, Token) and token.value == "(":
-                length, sub = read_until_balanced(expr[i:], "(", ")")
+                m = parenthetical.match(expr[i:])
+                length, sub = len(m.groups), m.groups
                 i += length
                 yield self.combine(sub)
             else:

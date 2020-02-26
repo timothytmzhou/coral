@@ -1,5 +1,6 @@
 from abc import ABC, abstractmethod
 from tokens import TokenType, Token
+from stream import Stream
 
 
 class Match:
@@ -48,11 +49,12 @@ class CombinedPattern(Pattern):
             m = pattern.match(token_stream)
             if not m:
                 if i != 0:
-                    raise SyntaxError("unable to parse expected {}".format(pattern[i]))
+                    raise SyntaxError("unable to parse expected {}".format(pattern))
                 return Match(False)
             matches.append(m)
         else:
-            return Match(True, groups=[match.groups for match in matches if len(match.groups)])
+            return Match(True,
+                         groups=[m.groups for m in matches if m.groups])
 
     def __add__(self, other):
         if isinstance(other, CombinedPattern):
@@ -71,27 +73,19 @@ class TokenSequence(Pattern):
         self.pattern = pattern
         self.pattern_len = len(self.pattern)
 
-    def check_token(self, i, token):
-        """
-        checks if token matches ith element of self.pattern
-        :param i: index of self.pattern to check against
-        :param token: Token object
-        :return: boolean indicating match
-        """
-        p = self.pattern[i]
-        if isinstance(p, TokenType):
-            return token.token_type == p
-        else:
-            return token == p
-
     def match(self, token_stream):
+        groups = Stream()
         try:
-            for i, token in enumerate(self.pattern):
-                if not self.check_token(i, token_stream[i]):
+            for i, p in enumerate(self.pattern):
+                token = token_stream[i]
+                if isinstance(p, TokenType):
+                    groups.append(token)
+                    token = token.token_type
+                if token != p:
                     break
             else:
                 token_stream.consume(self.pattern_len)
-                return Match(True)
+                return Match(True, groups=groups)
         except StopIteration:
             pass
         return Match(False)
@@ -115,13 +109,12 @@ class TerminatingSequence(Pattern):
         consumes tokens until a terminator is found
         :return: Match(True) (error if terminator not found)
         """
-        groups = []
         try:
-            for token in token_stream:
+            for i, token in enumerate(token_stream.stream()):
                 if token == self.terminator:
+                    groups = token_stream[:i]
+                    token_stream.consume(i + 1)
                     return Match(True, groups=groups)
-                else:
-                    groups.append(token)
         except StopIteration:
             raise EOFError(
                 "attempted to parse terminating sequence against stream without terminator")
@@ -142,22 +135,22 @@ class BracketedSequence(Pattern):
         :param close_bracket: closing bracket-type
         :return: the number of read tokens, the read tokens if successful, else None
         """
-        buffer = []
         level = 0
-        for token in token_stream:
+        for i, token in enumerate(token_stream.stream()):
             if token == self.open:
                 level += 1
-            elif token.value == self.close:
+            elif token == self.close:
                 level -= 1
-            buffer.append(token)
             if not level:
                 break
         else:
             raise SyntaxError("unbalanced bracketed expression detected")
-        return Match(len(buffer), buffer[1:-1])
+        groups = token_stream[1:i]
+        token_stream.consume(i + 1)
+        return Match(bool(groups), groups=groups)
 
     def __str__(self):
-        return "bracketed sequence: {0}...{1}".format(self.open, self.close)
+        return "bracketed sequence: {0}...{1}".format(self.open.value, self.close.value)
 
 
 class DelimitedSequence(Pattern):
@@ -171,7 +164,7 @@ class DelimitedSequence(Pattern):
         self.filter_func = filter_func
 
     def match(self, token_stream):
-        groups = []
+        groups = Stream()
         while True:
             e = token_stream.peek()
             if self.filter_func(e):
@@ -184,7 +177,7 @@ class DelimitedSequence(Pattern):
                 next(token_stream)
             else:
                 break
-        return Match(True, groups)
+        return Match(True, groups=groups)
 
     def __str__(self):
         return "delimited sequence: {}".format(self.delimiter)
