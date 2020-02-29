@@ -31,33 +31,20 @@ binary_operators = {
     ":>": lambda a, b: a in b,
 }
 
-operator_precedence = (
-    ("**",),
-    ("*", "/", "@", "%"),
-    ("+", "-"),
-    ("<<", ">>"),
-    ("&",),
-    ("^",),
-    ("|",),
-    (":>", "<", ">", "<=", ">=", "!=", "==", "===", "!=="),
-    ("&&",),
-    ("^^",),
+# rbp is set to multiples of 10 to support right associativity during parsing
+operator_precedence = {op: i * 10 for i, ops in enumerate((
     ("||",),
-)
-
-
-class Token:
-    def __init__(self, token_type, value, node_type=None):
-        self.token_type = token_type
-        self.value = value
-        self.node_type = node_type
-
-    def __str__(self):
-        string = f"{self.token_type}: {self.value}"
-        if self.node_type is not None:
-            string += f", {self.node_type.__name__}"
-        return string
-
+    ("^^", ),
+    ("&&",),
+    (":>", "<", ">", "<=", ">=", "!=", "==", "===", "!=="),
+    ("|",),
+    ("^",),
+    ("&",),
+    ("<<", ">>"),
+    ("+", "-"),
+    ("*", "/", "@", "%"),
+    ("**",),
+)) for op in ops}
 
 class TokenType(Enum):
     UNARY = 1
@@ -71,21 +58,41 @@ class TokenType(Enum):
     SEPARATOR = 9
 
 
+class Token:
+    def __init__(self, value, token_type=None, node_type=None):
+        if token_type is None:
+            token_type = token_types[value]
+        self.token_type = token_type
+        self.value = value
+        self.node_type = node_type
+
+    def __str__(self):
+        string = f"{self.token_type}: {self.value}"
+        if self.node_type is not None:
+            string += f", {self.node_type.__name__}"
+        return string
+
+    def __eq__(self, other):
+        if isinstance(other, Token):
+            return (
+                    self.token_type == other.token_type and
+                    self.value == other.value and
+                    self.node_type == other.node_type
+            )
+        else:
+            return False
+
+
 # token types initialization
-token_types = {}
-
-
-def add_tokens(token_type, tokens):
-    token_types.update({token: token_type for token in tokens})
-
-
-add_tokens(TokenType.UNARY, ("!", "++", "--"))
-add_tokens(TokenType.BINARY, tuple(binary_operators))
-add_tokens(TokenType.CONTROL_FLOW, ("if", "elif", "else", "while", "for", "do"))
-add_tokens(TokenType.KEYWORD, ("print",))
-add_tokens(
-    TokenType.SYMBOL,
-    (":", "=>", "=", "+=", "-=", "*=", "/=", "**=", "%=", "@=", ">>=", "<<=", "&=", "|=", "^=")
-)
-add_tokens(TokenType.GROUPING, ("(", ")", "{", "}", ";"))
-add_tokens(TokenType.SEPARATOR, (" ", ","))
+token_types = {
+    token: token_type for token_type, tokens in (
+        (TokenType.UNARY, ("!", "++", "--")),
+        (TokenType.BINARY, tuple(binary_operators)),
+        (TokenType.CONTROL_FLOW, ("if", "elif", "else", "while", "for", "do")),
+        (TokenType.KEYWORD, ("print",)),
+        (TokenType.SYMBOL, (":", "=>", "=", "+=", "-=", "*=", "/=", "**=", "%=", "@=", ">>=",
+                            "<<=", "&=", "|=", "^=")),
+        (TokenType.GROUPING, ("(", ")", "{", "}", ";")),
+        (TokenType.SEPARATOR, (" ", ","))
+    ) for token in tokens
+}

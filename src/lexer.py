@@ -1,5 +1,6 @@
 from tokens import *
 from tree import *
+from stream import Stream
 import itertools
 
 
@@ -27,7 +28,7 @@ def unpack(grouped):
     )
 
 
-# TODO: refactor code by removing Scanner class (doesn't really make code cleaner)
+# TODO: refactor code by replacing Scanner with a Stream
 class Scanner:
     def __init__(self, source):
         self.pos = 0
@@ -73,6 +74,9 @@ class Lexer:
         self.scanner = Scanner(source)
 
     def tokenize(self):
+        return Stream(self._tokenize())
+
+    def _tokenize(self):
         """
         performs lexical analysis on source to split it into more easily parsed tokens
         :yield: Token objects
@@ -85,25 +89,26 @@ class Lexer:
             for length, token in sorted_token_types:
                 if self.scanner.peek(length) == token:
                     if not (
-                            token_types[token] == TokenType.CONTROL_FLOW and
+                            token_types[token] is TokenType.CONTROL_FLOW and
                             self.scanner.peek_at(length) in allowed_identifier_chars
                     ):
-                        yield Token(token_types[token], token)
+                        yield Token(token, token_type=token_types[token])
                         self.scanner.advance(length - 1)
                     break
             else:
                 # check if the character is the start of a string
                 if char in "\"'":
                     string = self.read_string(char)
-                    yield Token(TokenType.VALUE, string, String)
+                    yield Token(string, token_type=TokenType.VALUE, node_type=String)
                 # check if the character is the start of an int or float
                 elif char.isdigit():
                     num, is_float = self.read_num()
-                    yield Token(TokenType.VALUE, num, Float if is_float else Integer)
+                    yield Token(num, token_type=TokenType.VALUE,
+                                node_type=Float if is_float else Integer)
                 # check if the character is the start of an identifier
                 elif char in allowed_identifier_chars:
                     identifier = self.read_identifier()
-                    yield Token(TokenType.IDENTIFIER, identifier)
+                    yield Token(identifier, token_type=TokenType.IDENTIFIER)
                 else:
                     raise SyntaxError("improper token found")
 
