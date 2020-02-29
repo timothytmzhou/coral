@@ -32,7 +32,10 @@ def unpack(grouped):
 class Scanner:
     def __init__(self, source):
         self.pos = 0
-        self.source = source
+        self.source = "\n".join(
+            line for line in source.splitlines()
+            if not line.strip().startswith("//")
+        )
         self.len = len(source)
 
     def stream(self):

@@ -117,5 +117,5 @@ class Parser:
         TokenSequence(TokenType.IDENTIFIER, Token("=")) + eof: parse_assignment,
         TokenSequence(Token("print")) + eof: parse_output,
         TokenSequence(Token("while")) + parenthetical + code_block: parse_while,
-        TokenSequence(Token("if")) + parenthetical + code_block: parse_if
+        TokenSequence(Token("if")) + parenthetical + code_block: parse_if,
     }
