@@ -91,16 +91,21 @@ class Parser:
             next(expr)
             return ObjectLookup(token.value)
         elif token.token_type == TokenType.GROUPING:
-            if m := parenthetical.match(expr):
+            m = parenthetical.match(expr)
+            if m:
                 return self.parse_expr(m.groups)
         else:
             raise SyntaxError("non-value {}".format(token))
 
     def led(self, left, op, expr):
+        precedence = operator_precedence[op]
+        # right associativity
+        if op == "^":
+            precedence -= 1
         return BinaryOperator(
             binary_operators[op],
             left,
-            self.parse_expr(expr, rbp=operator_precedence[op])
+            self.parse_expr(expr, rbp=precedence)
         )
 
     patterns = {
