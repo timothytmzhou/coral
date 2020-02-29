@@ -100,7 +100,7 @@ class Parser:
     def led(self, left, op, expr):
         precedence = operator_precedence[op]
         # right associativity
-        if op == "^":
+        if op == "**":
             precedence -= 1
         return BinaryOperator(
             binary_operators[op],
