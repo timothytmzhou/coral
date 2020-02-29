@@ -24,6 +24,13 @@ class Stream(peekable):
                 raise StopIteration
             i += 1
 
+    def contains(self, n):
+        try:
+            self[n - 1]
+            return True
+        except IndexError:
+            return False
+
     def consume(self, n=None):
         """
         consume n elements

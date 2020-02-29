@@ -135,19 +135,22 @@ class BracketedSequence(Pattern):
         :param close_bracket: closing bracket-type
         :return: the number of read tokens, the read tokens if successful, else None
         """
-        level = 0
-        for i, token in enumerate(token_stream.stream()):
-            if token == self.open:
-                level += 1
-            elif token == self.close:
-                level -= 1
-            if not level:
-                break
+        if not token_stream[0] == self.open:
+            return Match(False, groups=None)
         else:
-            raise SyntaxError("unbalanced bracketed expression detected")
-        groups = token_stream[1:i]
-        token_stream.consume(i + 1)
-        return Match(bool(groups), groups=groups)
+            level = 0
+            for i, token in enumerate(token_stream.stream()):
+                if token == self.open:
+                    level += 1
+                elif token == self.close:
+                    level -= 1
+                if not level:
+                    break
+            else:
+                raise SyntaxError("unbalanced bracketed expression detected")
+            groups = token_stream[1:i]
+            token_stream.consume(i + 1)
+            return Match(bool(groups), groups=groups)
 
     def __str__(self):
         return "bracketed sequence: {0}...{1}".format(self.open.value, self.close.value)

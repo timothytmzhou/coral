@@ -31,20 +31,20 @@ binary_operators = {
     ":>": lambda a, b: a in b,
 }
 
-operator_precedence = (
-    ("**",),
-    ("*", "/", "@", "%"),
-    ("+", "-"),
-    ("<<", ">>"),
-    ("&",),
-    ("^",),
-    ("|",),
-    (":>", "<", ">", "<=", ">=", "!=", "==", "===", "!=="),
-    ("&&",),
-    ("^^",),
+# rbp is set to multiples of 10 to support right associativity during parsing
+operator_precedence = {op: i * 10 for i, ops in enumerate((
     ("||",),
-)
-
+    ("^^", ),
+    ("&&",),
+    (":>", "<", ">", "<=", ">=", "!=", "==", "===", "!=="),
+    ("|",),
+    ("^",),
+    ("&",),
+    ("<<", ">>"),
+    ("+", "-"),
+    ("*", "/", "@", "%"),
+    ("**",),
+)) for op in ops}
 
 class TokenType(Enum):
     UNARY = 1
