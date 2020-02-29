@@ -89,7 +89,7 @@ class Lexer:
             for length, token in sorted_token_types:
                 if self.scanner.peek(length) == token:
                     if not (
-                            token_types[token] == TokenType.CONTROL_FLOW and
+                            token_types[token] is TokenType.CONTROL_FLOW and
                             self.scanner.peek_at(length) in allowed_identifier_chars
                     ):
                         yield Token(token, token_type=token_types[token])

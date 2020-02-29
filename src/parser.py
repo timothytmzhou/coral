@@ -83,14 +83,14 @@ class Parser:
 
     def nud(self, expr):
         token = expr.peek()
-        if token.token_type == TokenType.VALUE:
+        if token.token_type is TokenType.VALUE:
             next(expr)
             Node = token.node_type
             return Node(Node.cast(token.value))
-        elif token.token_type == TokenType.IDENTIFIER:
+        elif token.token_type is TokenType.IDENTIFIER:
             next(expr)
             return ObjectLookup(token.value)
-        elif token.token_type == TokenType.GROUPING:
+        elif token.token_type is TokenType.GROUPING:
             m = parenthetical.match(expr)
             if m:
                 return self.parse_expr(m.groups)
