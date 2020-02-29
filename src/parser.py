@@ -94,6 +94,11 @@ class Parser:
             m = parenthetical.match(expr)
             if m:
                 return self.parse_expr(m.groups)
+        elif token.token_type is TokenType.OPERATOR:
+            if token.value == "-":
+                next(expr)
+                return UnaryOperator(unary_operators[token.value],
+                                     self.parse_expr(expr, rbp=operator_precedence["-"]))
         else:
             raise SyntaxError("non-value {}".format(token))
 

@@ -112,12 +112,12 @@ class String(Primitive):
 
 
 class UnaryOperator(Expression):
-    def __init__(self, func, value):
+    def __init__(self, func, child):
         self.func = func
-        self.value = value
+        self.child = child
 
     def eval(self):
-        return self.func(self.value)
+        return self.func(self.child.eval())
 
 
 class BinaryOperator(Expression):
