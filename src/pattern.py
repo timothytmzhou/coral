@@ -70,7 +70,7 @@ class TokenSequence(Pattern):
         :param pattern: Any combination of Token objects and TokenTypes to match against
         """
         # TODO: type check pattern
-        self.pattern = pattern
+        self.pattern = tuple(Token(p) if isinstance(p, str) else p for p in pattern)
         self.pattern_len = len(self.pattern)
 
     def match(self, token_stream):
@@ -190,3 +190,4 @@ class DelimitedSequence(Pattern):
 eof = TerminatingSequence()
 parenthetical = BracketedSequence(Token("("), Token(")"))
 code_block = BracketedSequence(Token("{"), Token("}"))
+ds = DelimitedSequence()

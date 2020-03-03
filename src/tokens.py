@@ -64,12 +64,12 @@ class TokenType(Enum):
 
 
 class Token:
-    def __init__(self, value, token_type=None, node_type=None):
+    def __init__(self, value, token_type=None, object_type=None):
         if token_type is None:
             token_type = token_types[value]
         self.token_type = token_type
         self.value = value
-        self.node_type = node_type
+        self.node_type = object_type
 
     def __str__(self):
         string = f"{self.token_type}: {self.value}"

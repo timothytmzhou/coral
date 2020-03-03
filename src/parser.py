@@ -85,8 +85,8 @@ class Parser:
         token = expr.peek()
         if token.token_type is TokenType.VALUE:
             next(expr)
-            Node = token.node_type
-            return Node(Node.cast(token.value))
+            Object_Type = token.node_type
+            return Value(Object_Type(Object_Type.cast(token.value)))
         elif token.token_type is TokenType.IDENTIFIER:
             next(expr)
             return ObjectLookup(token.value)
@@ -114,8 +114,8 @@ class Parser:
         )
 
     patterns = {
-        TokenSequence(TokenType.IDENTIFIER, Token("=")) + eof: parse_assignment,
-        TokenSequence(Token("print")) + eof: parse_output,
-        TokenSequence(Token("while")) + parenthetical + code_block: parse_while,
-        TokenSequence(Token("if")) + parenthetical + code_block: parse_if,
+        TokenSequence(TokenType.IDENTIFIER, "=") + eof: parse_assignment,
+        TokenSequence("print") + eof: parse_output,
+        TokenSequence("while") + parenthetical + code_block: parse_while,
+        TokenSequence("if") + parenthetical + code_block: parse_if
     }

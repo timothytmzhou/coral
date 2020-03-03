@@ -1,5 +1,5 @@
 from tokens import *
-from tree import *
+from object import *
 from stream import Stream
 import itertools
 
@@ -102,12 +102,12 @@ class Lexer:
                 # check if the character is the start of a string
                 if char in "\"'":
                     string = self.read_string(char)
-                    yield Token(string, token_type=TokenType.VALUE, node_type=String)
+                    yield Token(string, token_type=TokenType.VALUE, object_type=String)
                 # check if the character is the start of an int or float
                 elif char.isdigit():
                     num, is_float = self.read_num()
                     yield Token(num, token_type=TokenType.VALUE,
-                                node_type=Float if is_float else Integer)
+                                object_type=Float if is_float else Integer)
                 # check if the character is the start of an identifier
                 elif char in allowed_identifier_chars:
                     identifier = self.read_identifier()
