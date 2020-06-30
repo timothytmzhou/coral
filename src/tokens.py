@@ -34,7 +34,7 @@ binary_operators = {
 # rbp is set to multiples of 10 to support right associativity during parsing
 operator_precedence = {op: i * 10 for i, ops in enumerate((
     ("||",),
-    ("^^", ),
+    ("^^",),
     ("&&",),
     (":>", "<", ">", "<=", ">=", "!=", "==", "===", "!=="),
     ("|",),
@@ -45,6 +45,7 @@ operator_precedence = {op: i * 10 for i, ops in enumerate((
     ("*", "/", "@", "%"),
     ("**",),
 )) for op in ops}
+
 
 class TokenType(Enum):
     UNARY = 1
@@ -64,20 +65,16 @@ class Token:
             token_type = token_types[value]
         self.token_type = token_type
         self.value = value
-        self.node_type = node_type
 
     def __str__(self):
         string = f"{self.token_type}: {self.value}"
-        if self.node_type is not None:
-            string += f", {self.node_type.__name__}"
         return string
 
     def __eq__(self, other):
         if isinstance(other, Token):
             return (
                     self.token_type == other.token_type and
-                    self.value == other.value and
-                    self.node_type == other.node_type
+                    self.value == other.value
             )
         else:
             return False
@@ -89,7 +86,7 @@ token_types = {
         (TokenType.UNARY, ("!", "++", "--")),
         (TokenType.BINARY, tuple(binary_operators)),
         (TokenType.CONTROL_FLOW, ("if", "elif", "else", "while", "for", "do")),
-        (TokenType.KEYWORD, ("print",)),
+        (TokenType.KEYWORD, ("func", "return")),
         (TokenType.SYMBOL, (":", "=>", "=", "+=", "-=", "*=", "/=", "**=", "%=", "@=", ">>=",
                             "<<=", "&=", "|=", "^=")),
         (TokenType.GROUPING, ("(", ")", "{", "}", ";")),

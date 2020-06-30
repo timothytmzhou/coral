@@ -41,55 +41,34 @@ class Parser:
         return parsed
 
     def parse_assignment(self, identifier, expr):
-        return Assignment(identifier[0].value, self.parse_expr(expr))
-
-    def parse_output(self, expr):
-        return Output(self.parse_expr(expr))
-
-    def parse_while(self, expr, statements):
-        return While(self.parse_expr(expr), self.parse(statements))
-
-    def parse_if(self, expr, statements):
-        root = Conditional(self.parse_expr(expr), self.parse(statements))
-        elifs = self.parse(
-            patterns={TokenSequence(Token("elif")) + parenthetical + code_block:
-                          Parser.parse_elif},
-            raise_error=False
-        )
-        else_block = self.parse(patterns={
-            TokenSequence(Token("else")) + code_block:
-                Parser.parse_else},
-            raise_error=False
-        )
-        previous = root
-        for conditional in elifs + else_block:
-            previous.next_node = conditional
-            previous = conditional
-        return root
-
-    def parse_elif(self, expr, statements):
-        return Conditional(self.parse_expr(expr), self.parse(statements))
-
-    def parse_else(self, statements):
-        return Conditional(ObjectLookup("true"), self.parse(statements))
+        name = identifier[0].value
+        expr = self.parse_expr(expr)
+        return Assignment(name, expr)
 
     def parse_expr(self, expr, rbp=0):
-        # modified pratt parser
+        # Pratt parsing
         left = self.nud(expr)
         while expr and operator_precedence[(op := expr.peek().value)] > rbp:
             next(expr)
             left = self.led(left, op, expr)
         return left
 
-    def nud(self, expr):
+    def nud(self, expr, parse_func=True):
         token = expr.peek()
         if token.token_type is TokenType.VALUE:
             next(expr)
-            Node = token.node_type
-            return Node(Node.cast(token.value))
+            return Value(token.value)
         elif token.token_type is TokenType.IDENTIFIER:
-            next(expr)
-            return ObjectLookup(token.value)
+            ahead = next(expr)
+            # function calls
+            if expr and (p := expr.peek().value) not in binary_operators and parse_func:
+                func_name = ahead.value
+                args = []
+                while expr and expr.peek().value not in binary_operators:
+                    args.append(self.nud(expr, parse_func=False))
+                return Call(func_name, args)
+            else:
+                return ObjectLookup(token.value)
         elif token.token_type is TokenType.GROUPING:
             m = parenthetical.match(expr)
             if m:
@@ -108,9 +87,52 @@ class Parser:
             self.parse_expr(expr, rbp=precedence)
         )
 
+    def parse_while(self, expr, statements):
+        return While(self.parse_expr(expr), self.parse(statements))
+
+    def parse_if(self, expr, statements):
+        root = Conditional(self.parse_expr(expr), self.parse(statements))
+        elifs = self.parse(
+            patterns={TokenSequence("elif") + parenthetical + code_block:
+                          Parser.parse_elif},
+            raise_error=False
+        )
+        else_block = self.parse(patterns={
+            TokenSequence("else") + code_block:
+                Parser.parse_else},
+            raise_error=False
+        )
+        previous = root
+        for conditional in elifs + else_block:
+            previous.next_node = conditional
+            previous = conditional
+        return root
+
+    def parse_elif(self, expr, statements):
+        return Conditional(self.parse_expr(expr), self.parse(statements))
+
+    def parse_else(self, statements):
+        return Conditional(ObjectLookup("true"), self.parse(statements))
+
+    def parse_func(self, name, args, statements):
+        name = name[0].value
+        if args:
+            args = tuple(token.value for token in args)
+        else:
+            args = None
+        return FuncDef(name, args, self.parse(statements))
+
+    def parse_return(self, expr=None):
+        if expr is None:
+            return Return(ObjectLookup("null"))
+        else:
+            return Return(self.parse_expr(expr))
+
     patterns = {
-        TokenSequence(TokenType.IDENTIFIER, Token("=")) + eof: parse_assignment,
-        TokenSequence(Token("print")) + eof: parse_output,
-        TokenSequence(Token("while")) + parenthetical + code_block: parse_while,
-        TokenSequence(Token("if")) + parenthetical + code_block: parse_if
+        TokenSequence(TokenType.IDENTIFIER, "=") + eof: parse_assignment,
+        TokenSequence("while") + parenthetical + code_block: parse_while,
+        TokenSequence("if") + parenthetical + code_block: parse_if,
+        TokenSequence("func", TokenType.IDENTIFIER) + TerminatingSequence("=") + code_block: parse_func,
+        TokenSequence("return") + eof: parse_return,
+        eof: parse_expr
     }

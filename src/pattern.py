@@ -69,7 +69,8 @@ class TokenSequence(Pattern):
         directly matches against provided Token objects
         :param pattern: Any combination of Token objects and TokenTypes to match against
         """
-        # TODO: type check pattern
+        # type checks pattern
+        assert all(isinstance(p, (str, TokenType)) for p in pattern)
         self.pattern = pattern
         self.pattern_len = len(self.pattern)
 
@@ -78,10 +79,11 @@ class TokenSequence(Pattern):
         try:
             for i, p in enumerate(self.pattern):
                 token = token_stream[i]
-                if isinstance(p, TokenType):
+                if isinstance(p, TokenType) and token.token_type == p:
                     groups.append(token)
-                    token = token.token_type
-                if token != p:
+                elif isinstance(p, str) and token == Token(p):
+                    continue
+                else:
                     break
             else:
                 token_stream.consume(self.pattern_len)
@@ -91,18 +93,18 @@ class TokenSequence(Pattern):
         return Match(False)
 
     def __str__(self):
-        stringified = []
+        body = []
         for p in self.pattern:
             if isinstance(p, TokenType):
-                stringified.append(p.name.lower())
+                body.append(p.name.lower())
             elif isinstance(p, Token):
-                stringified.append(p.value)
-        return "sequence: {}".format(", ".join(stringified))
+                body.append(p.value)
+        return "sequence: {}".format(", ".join(body))
 
 
 class TerminatingSequence(Pattern):
-    def __init__(self, terminator=Token(";")):
-        self.terminator = terminator
+    def __init__(self, terminator=";"):
+        self.terminator = Token(terminator)
 
     def match(self, token_stream):
         """
@@ -125,8 +127,8 @@ class TerminatingSequence(Pattern):
 
 class BracketedSequence(Pattern):
     def __init__(self, open, close):
-        self.open = open
-        self.close = close
+        self.open = Token(open)
+        self.close = Token(close)
 
     def match(self, token_stream):
         """
@@ -157,13 +159,13 @@ class BracketedSequence(Pattern):
 
 
 class DelimitedSequence(Pattern):
-    def __init__(self, filter_func=lambda x: True, delimiter=Token(",")):
+    def __init__(self, delimiter=",", filter_func=lambda token: True):
         """
         pattern for matching against a delimited sequence e.g list, function args, etc.
-        :param delimiter: Token delimiter - default is separator comma
+        :param delimiter: str delimiter- default is separator comma
         :param filter_func: filtering function for elements
         """
-        self.delimiter = delimiter
+        self.delimiter = Token(delimiter)
         self.filter_func = filter_func
 
     def match(self, token_stream):
@@ -188,5 +190,5 @@ class DelimitedSequence(Pattern):
 
 # some predefined patterns
 eof = TerminatingSequence()
-parenthetical = BracketedSequence(Token("("), Token(")"))
-code_block = BracketedSequence(Token("{"), Token("}"))
+parenthetical = BracketedSequence("(", ")")
+code_block = BracketedSequence("{", "}")

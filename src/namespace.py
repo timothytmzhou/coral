@@ -1,23 +1,18 @@
-from object import *
+class Namespace:
+    def __init__(self, parent=None, obj_dict=None):
+        self.parent = parent
+        if obj_dict is not None:
+            self.obj_dict = obj_dict
+        else:
+            self.obj_dict = {}
 
-
-class Namespace(Object):
-    def __init__(self, name):
-        super().__init__(name)
-        self.obj_dict = {
-            "true": Var("true", True),
-            "false": Var("false", False),
-            "null": Var("null", None)
-        }
-
-    def get_var(self, name):
+    def fetch(self, name):
         if name in self.obj_dict:
             return self.obj_dict[name]
+        elif self.parent is not None:
+            return self.parent.fetch(name)
         else:
             raise LookupError
 
-    def set_var(self, name, value):
-        self.obj_dict[name] = Var(name, value)
-
-
-main = Namespace("main")
+    def push(self, name, value):
+        self.obj_dict[name] = value

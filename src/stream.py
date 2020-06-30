@@ -24,13 +24,6 @@ class Stream(peekable):
                 raise StopIteration
             i += 1
 
-    def contains(self, n):
-        try:
-            self[n - 1]
-            return True
-        except IndexError:
-            return False
-
     def consume(self, n=None):
         """
         consume n elements
@@ -52,6 +45,7 @@ class Stream(peekable):
         self._cache.extend(items)
 
     def __str__(self):
+
         return "<Stream object> {{\n    {}\n}}".format(",\n    ".join((map(str, self[:]))))
 
     def __getitem__(self, item):
